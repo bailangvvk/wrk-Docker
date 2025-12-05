@@ -51,5 +51,3 @@ jobs:
           push: true
           tags: |
             ${{ env.DOCKER_REPO }}:ssl
-          # build-args: |
-          #     NGINX_VERSION=${{ env.NGINX_VERSION }}
