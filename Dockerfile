@@ -1,43 +1,36 @@
-FROM alpine:3.12 AS build
+# 最小化wrk Docker镜像构建
+# 基于多阶段构建和Alpine Linux，最终镜像约8MB
 
-# 安装依赖，包括 perl（构建 OpenSSL 所必需）
-RUN apk add --no-cache \
-    openssl-dev \
-    zlib-dev \
-    git make \
+# 阶段1: 编译层
+FROM alpine:3.19 AS builder
+
+# 安装构建依赖
+RUN set -eux && apk add --no-cache \
+    git \
+    make \
     gcc \
     musl-dev \
     libbsd-dev \
+    zlib-dev \
+    openssl-dev \
     perl \
-    && \
-    git clone https://github.com/wg/wrk.git && \
-      cd wrk && make
+    # 克隆并编译wrk
+    && git clone https://github.com/wg/wrk.git --depth 1 && \
+    cd wrk && \
+    make clean && \
+    make WITH_OPENSSL=0 \
+    && ls -lh /wrk/wrk \
+    && strip -v --strip-all /wrk/wrk \
+    && ls -lh /wrk/wrk
 
-# Stage 2: Runtime 环境极简
-FROM alpine:3.12
-RUN apk add --no-cache \
-    libgcc
-    
-RUN adduser -D -H wrk_user
+# 阶段2: 运行层
+FROM alpine:3.19
 
-USER wrk_user
-COPY --from=build /wrk/wrk /usr/bin/wrk
-ENTRYPOINT ["/usr/bin/wrk"]
+# 安装运行时依赖 - libgcc提供libgcc_s.so.1共享库
+RUN apk add --no-cache libgcc
 
-# FROM alpine:3.12 AS build
+# 从编译层复制wrk二进制文件
+COPY --from=builder /wrk/wrk /usr/local/bin/wrk
 
-# # 安装构建 wrk 及静态链接所需依赖
-# RUN apk add --no-cache \
-#     git make gcc musl-dev musl-utils \
-#     libbsd-dev openssl-dev zlib-dev perl
-
-# # 克隆 wrk
-# RUN git clone https://github.com/wg/wrk.git
-
-# # 构建 wrk 为静态链接二进制
-# RUN cd wrk && make clean && \
-#     make CC="musl-gcc" LDFLAGS="-static" CFLAGS="-O3 -static"
-
-# FROM scratch
-COPY --from=build /wrk/wrk /wrk
-ENTRYPOINT ["/wrk"]
+# 设置入口点
+ENTRYPOINT ["/usr/local/bin/wrk"]
