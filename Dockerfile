@@ -34,7 +34,7 @@ RUN git clone --depth 1 https://github.com/wg/wrk.git && \
 FROM busybox:musl
 
 # 4. 只复制编译好的二进制
-COPY --from=build /wrk/wrk /wrk
+COPY --from=builder /wrk/wrk /wrk
 
 # 5. 设置数据卷（元数据，不占空间）
 VOLUME ["/data"]
