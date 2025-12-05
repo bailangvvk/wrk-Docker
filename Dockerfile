@@ -1,17 +1,24 @@
+# 构建阶段
 FROM alpine:3.12 AS build
 
-# 安装构建依赖
 RUN apk add --no-cache \
-    git make gcc musl-dev \
-    libbsd-dev openssl-static zlib-static
+    openssl-dev zlib-dev git make gcc musl-dev libbsd-dev perl
 
-# 克隆 wrk
-RUN git clone --depth 1 https://github.com/wg/wrk.git
+RUN git clone --depth 1 https://github.com/wg/wrk.git && \
+    cd wrk && make
 
-# 构建静态版本
-RUN cd wrk && \
-    make WITH_LIBS=1 LDFLAGS="-static -L/usr/lib -lssl -lcrypto -lz -lbsd"
+# 运行时阶段（最小化）
+FROM alpine:3.12
 
-FROM scratch
-COPY --from=build /wrk/wrk /wrk
-ENTRYPOINT ["/wrk"]
+# 只安装必要的运行时库
+RUN apk add --no-cache libgcc libssl1.1 zlib
+
+# 复制二进制文件
+COPY --from=build /wrk/wrk /usr/local/bin/wrk
+
+# 设置非root用户
+RUN adduser -D -H wrk_user
+USER wrk_user
+
+ENTRYPOINT ["wrk"]
+CMD ["--help"]
