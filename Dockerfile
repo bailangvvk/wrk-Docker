@@ -12,14 +12,21 @@ FROM alpine:3.19 AS build
 
 # 安装构建依赖 (不包含openssl-dev以减小体积)
 # 这些工具仅用于编译，不会出现在最终镜像中
+# git: 克隆源代码
+# make: 构建工具  
+# gcc: C编译器
+# musl-dev: musl C库开发文件 (比glibc更小)
+# libbsd-dev: BSD兼容库
+# zlib-dev: 压缩库
+# perl: 部分构建脚本需要
 RUN apk add --no-cache \
-    git \          # 克隆源代码
-    make \         # 构建工具
-    gcc \          # C编译器
-    musl-dev \     # musl C库开发文件 (比glibc更小)
-    libbsd-dev \   # BSD兼容库
-    zlib-dev \     # 压缩库
-    perl          # 部分构建脚本需要
+    git \
+    make \
+    gcc \
+    musl-dev \
+    libbsd-dev \
+    zlib-dev \
+    perl
 
 # 克隆wrk仓库 (--depth 1只获取最新提交，减少下载大小)
 RUN git clone https://github.com/wg/wrk.git --depth 1
