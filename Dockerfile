@@ -21,7 +21,6 @@ RUN git clone https://github.com/wg/wrk.git --depth 1
 RUN cd wrk && \
     make clean && \
     make WITH_OPENSSL=1 \
-         CC="musl-gcc" \
          LDFLAGS="-static" \
          CFLAGS="-O3 -static -D_GNU_SOURCE"
 
