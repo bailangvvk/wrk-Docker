@@ -11,17 +11,15 @@ RUN apk add --no-cache \
     zlib-dev \
     git \
     make \
-    musl-dev \          # musl静态编译工具
+    musl-dev \
     libbsd-dev \
-    perl \
-    # 2. 静态编译wrk（使用musl-gcc和-static标志）
-    && git clone --depth 1 https://github.com/wg/wrk.git && \
+    perl
+
+# 2. 静态编译wrk（使用musl-gcc和-static标志）
+RUN git clone --depth 1 https://github.com/wg/wrk.git && \
     cd wrk && \
-    # 清理之前的构建
     make clean || true && \
-    # 静态编译，使用-O3优化
     make CC="musl-gcc" LDFLAGS="-static" CFLAGS="-O3 -static" && \
-    # 剥离调试符号
     strip wrk && \
     cp wrk /tmp/wrk-static
 
