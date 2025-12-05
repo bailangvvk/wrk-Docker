@@ -1,36 +1,21 @@
-# 最小化wrk镜像
-FROM alpine:3.12 AS builder
-
-WORKDIR /tmp
+FROM alpine:3.12 AS build
 
 # 安装构建依赖
 RUN apk add --no-cache \
-    build-base \
-    openssl-dev \
-    zlib-dev \
-    git \
-    libbsd-dev \
-    perl
+    git make gcc musl-dev \
+    libbsd-dev openssl-dev zlib-dev perl
 
-# 编译wrk
-RUN git clone --depth 1 https://github.com/wg/wrk.git && \
-    cd wrk && \
-    make && \
-    cp wrk /tmp/wrk-compiled && \
-    strip /tmp/wrk-compiled
+# 克隆 wrk
+RUN git clone https://github.com/wg/wrk.git
 
-# 最终镜像 - 使用busybox:musl确保兼容性
-FROM busybox:musl
-# 选项B：scratch（最小体积，无shell，约+0MB）
-# FROM scratch
+# 构建静态版本
+RUN cd wrk && make clean && \
+    make CC="musl-gcc" LDFLAGS="-static" CFLAGS="-O3 -static"
 
-# 复制二进制并确保可执行
-COPY --from=builder /tmp/wrk-compiled /usr/local/bin/wrk
-RUN chmod +x /usr/local/bin/wrk
+# 验证是否为静态文件
+RUN ldd /wrk/wrk 2>&1 | grep -q "not a dynamic executable" || (echo "不是静态二进制文件" && exit 1)
 
-# 设置工作目录和数据卷
-VOLUME ["/data"]
-WORKDIR /data
-
-# 使用CMD而不是ENTRYPOINT，更灵活
-CMD ["wrk"]
+# 最终使用 scratch 镜像
+FROM scratch
+COPY --from=build /wrk/wrk /wrk
+ENTRYPOINT ["/wrk"]
