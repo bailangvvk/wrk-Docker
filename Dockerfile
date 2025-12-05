@@ -1,7 +1,7 @@
-# 阶段1：基础镜像（与原始一致）
-FROM alpine:3.12
+# 基于Alpine 3.12的多阶段构建（与原始镜像一致）
+FROM alpine:3.12 AS builder
 
-# 阶段2：安装编译依赖（原始镜像的构建层）
+# 安装编译依赖（与原始镜像的依赖匹配）
 RUN apk add --no-cache \
     openssl-dev \
     zlib-dev \
@@ -12,27 +12,27 @@ RUN apk add --no-cache \
     libbsd-dev \
     perl
 
-# 阶段3：克隆和编译wrk（这是3.62MB的层）
+# 克隆和编译wrk（这是产生3.62MB层的关键步骤）
 RUN git clone https://github.com/wg/wrk.git && \
     cd wrk && \
-    make
+    make && \
+    cp wrk /tmp/wrk-compiled
 
-# 阶段4：清理和准备最终镜像
-RUN cd wrk && \
-    cp wrk /tmp/ && \
-    cd / && \
-    rm -rf /wrk
+# 最终镜像阶段
+FROM alpine:3.12
 
-# 阶段5：复制到最终位置
-RUN cp /tmp/wrk /usr/local/bin/wrk && \
-    rm -f /tmp/wrk
+# 只安装运行时必需的库（libgcc）
+RUN apk add --no-cache libgcc
 
-# 阶段6：创建数据卷和工作目录
+# 从构建阶段复制编译好的二进制
+COPY --from=builder /tmp/wrk-compiled /usr/local/bin/wrk
+
+# 设置数据卷和工作目录（与原始镜像一致）
 VOLUME ["/data"]
 WORKDIR /data
 
-# 阶段7：设置入口点
+# 设置入口点
 ENTRYPOINT ["/usr/local/bin/wrk"]
 
-# 阶段8：维护者信息（出现在历史中）
-MAINTAINER William Yeh <william.pjyeh@gmail.com>
+# 维护者信息（可选）
+# MAINTAINER Your Name <your@email.com>
