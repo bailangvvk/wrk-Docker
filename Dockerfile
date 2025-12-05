@@ -5,7 +5,7 @@
 FROM alpine:3.19 AS builder
 
 # 安装构建依赖
-RUN apk add --no-cache \
+RUN set -eux && apk add --no-cache \
     git \
     make \
     gcc \
@@ -19,15 +19,15 @@ RUN apk add --no-cache \
     cd wrk && \
     make clean && \
     make WITH_OPENSSL=0 \
-    && du -sh / \
-    && strip --strip-all /wrk/* 2>/dev/null || true \
-    && du -sh /
+    && ls -lh /wrk/wrk \
+    && strip -v --strip-all /wrk/wrk \
+    && ls -lh /wrk/wrk
 
 # 阶段2: 运行层
 FROM alpine:3.19
 
 # 仅安装运行时依赖
-RUN apk add --no-cache libgcc
+# RUN apk add --no-cache libgcc
 
 # 从编译层复制wrk二进制文件
 COPY --from=builder /wrk/wrk /usr/local/bin/wrk
