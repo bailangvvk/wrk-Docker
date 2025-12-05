@@ -19,10 +19,6 @@ RUN set -eux && apk add --no-cache \
     cd wrk && \
     make clean && \
     make WITH_OPENSSL=0 \
-    # CFLAGS="-O3 -flto -fomit-frame-pointer -DNDEBUG -static" \
-    CFLAGS="-O3" \
-    # 报错 要加头文件
-    # LDFLAGS="-flto -static" \
     && ls -lh /wrk/wrk \
     && strip -v --strip-all /wrk/wrk \
     && ls -lh /wrk/wrk
