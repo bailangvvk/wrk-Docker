@@ -21,8 +21,10 @@ RUN git clone https://github.com/wg/wrk.git --depth 1
 RUN cd wrk && \
     make clean && \
     make WITH_OPENSSL=1 \
-         LDFLAGS="-static" \
-         CFLAGS="-O3 -static -D_GNU_SOURCE"
+         LUAJIT_LIB=/wrk/obj/lib \
+         LUAJIT_INC=/wrk/obj/include/luajit-2.1 \
+         LDFLAGS="-static -L/wrk/obj/lib" \
+         CFLAGS="-O3 -static -D_GNU_SOURCE -I/wrk/obj/include/luajit-2.1"
 
 # Stage 2: Create minimal runtime image
 FROM scratch
