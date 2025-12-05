@@ -1,43 +1,38 @@
-FROM alpine:3.12 AS build
+# 阶段1：基础镜像（与原始一致）
+FROM alpine:3.12
 
-# 安装依赖，包括 perl（构建 OpenSSL 所必需）
+# 阶段2：安装编译依赖（原始镜像的构建层）
 RUN apk add --no-cache \
     openssl-dev \
     zlib-dev \
-    git make \
+    git \
+    make \
     gcc \
     musl-dev \
     libbsd-dev \
-    perl \
-    && \
-    git clone https://github.com/wg/wrk.git && \
-      cd wrk && make
+    perl
 
-# Stage 2: Runtime 环境极简
-FROM alpine:3.12
-RUN apk add --no-cache \
-    libgcc
-    
-RUN adduser -D -H wrk_user
+# 阶段3：克隆和编译wrk（这是3.62MB的层）
+RUN git clone https://github.com/wg/wrk.git && \
+    cd wrk && \
+    make
 
-USER wrk_user
-COPY --from=build /wrk/wrk /usr/bin/wrk
-ENTRYPOINT ["/usr/bin/wrk"]
+# 阶段4：清理和准备最终镜像
+RUN cd wrk && \
+    cp wrk /tmp/ && \
+    cd / && \
+    rm -rf /wrk
 
-# FROM alpine:3.12 AS build
+# 阶段5：复制到最终位置
+RUN cp /tmp/wrk /usr/local/bin/wrk && \
+    rm -f /tmp/wrk
 
-# # 安装构建 wrk 及静态链接所需依赖
-# RUN apk add --no-cache \
-#     git make gcc musl-dev musl-utils \
-#     libbsd-dev openssl-dev zlib-dev perl
+# 阶段6：创建数据卷和工作目录
+VOLUME ["/data"]
+WORKDIR /data
 
-# # 克隆 wrk
-# RUN git clone https://github.com/wg/wrk.git
+# 阶段7：设置入口点
+ENTRYPOINT ["/usr/local/bin/wrk"]
 
-# # 构建 wrk 为静态链接二进制
-# RUN cd wrk && make clean && \
-#     make CC="musl-gcc" LDFLAGS="-static" CFLAGS="-O3 -static"
-
-# FROM scratch
-COPY --from=build /wrk/wrk /wrk
-ENTRYPOINT ["/wrk"]
+# 阶段8：维护者信息（出现在历史中）
+MAINTAINER William Yeh <william.pjyeh@gmail.com>
