@@ -8,7 +8,7 @@
 # 目的: 包含所有构建工具和编译环境，此层不会进入最终镜像
 # 大小: 临时层，构建完成后丢弃
 # ============================================================================
-FROM alpine:3.19 AS build
+FROM alpine:3.12 AS build
 
 # 安装构建依赖 (不包含openssl-dev以减小体积)
 # 这些工具仅用于编译，不会出现在最终镜像中
@@ -33,18 +33,20 @@ RUN git clone https://github.com/wg/wrk.git --depth 1
 
 # 编译wrk (禁用OpenSSL支持以消除openssl依赖)
 # WITH_OPENSSL=0: 移除HTTPS支持，减少二进制大小和运行时依赖
+# 静态编译选项: 添加-static标志以创建静态链接的可执行文件
 RUN cd wrk && \
     make clean && \
     make WITH_OPENSSL=0 \
          LUAJIT_LIB=/wrk/obj/lib \
-         LUAJIT_INC=/wrk/obj/include/luajit-2.1
+         LUAJIT_INC=/wrk/obj/include/luajit-2.1 \
+         CC="gcc -static"
 
 # ============================================================================
 # 阶段2: 运行层 (Runtime Layer)
 # 目的: 仅包含wrk二进制文件和最小运行时依赖
 # 大小: Alpine基础(~5MB) + wrk二进制(~3.5MB) + libgcc ≈ 8.5MB
 # ============================================================================
-FROM alpine:3.19
+FROM alpine:3.12
 
 # 仅安装运行时必需的库
 # libgcc: 可能需要的C运行时支持，其他不必要的库都不安装
