@@ -32,29 +32,34 @@ RUN apk add --no-cache \
 # 克隆wrk仓库 (--depth 1只获取最新提交，减少下载大小)
 RUN git clone https://github.com/wg/wrk.git --depth 1
 
-# 选项1: 动态编译 (默认) - 与原始wrk镜像相同
-# 选项2: 静态编译 - 添加-static标志，创建完全静态的可执行文件
+# 选项A: 动态编译 (默认，与原始wrk镜像相同)
+# 取消下面make命令的注释，注释掉静态编译部分
+# 选项B: 静态编译 - 添加-static标志，创建完全静态的可执行文件
+# 取消下面make命令的注释，注释掉动态编译部分
 # 静态编译优势:
 # 1. 无需动态链接库，运行时无需libgcc等
 # 2. 可使用scratch空基础镜像，进一步减小体积
 # 3. 更好的可移植性，不依赖特定libc版本
+
+# 动态编译 (默认启用)
 RUN cd wrk && \
     make clean && \
-    # 动态编译 (取消注释以下行)
-    # make WITH_OPENSSL=0 \
-    #      LUAJIT_LIB=/wrk/obj/lib \
-    #      LUAJIT_INC=/wrk/obj/include/luajit-2.1
-    
-    # 静态编译 (取消注释以下行)
     make WITH_OPENSSL=0 \
          LUAJIT_LIB=/wrk/obj/lib \
-         LUAJIT_INC=/wrk/obj/include/luajit-2.1 \
-         CC="gcc -static" \
-         LDFLAGS="-static"
+         LUAJIT_INC=/wrk/obj/include/luajit-2.1
+
+# 如果要使用静态编译，请注释上面的动态编译，取消注释下面的静态编译：
+# RUN cd wrk && \
+#     make clean && \
+#     make WITH_OPENSSL=0 \
+#          LUAJIT_LIB=/wrk/obj/lib \
+#          LUAJIT_INC=/wrk/obj/include/luajit-2.1 \
+#          CC="gcc -static" \
+#          LDFLAGS="-static"
 
 # 验证编译结果: 检查是否为静态二进制
 RUN file /wrk/wrk && \
-    ldd /wrk/wrk 2>/dev/null && echo "动态链接" || echo "静态链接"
+    (ldd /wrk/wrk 2>/dev/null && echo "动态链接" || echo "静态链接")
 
 # ============================================================================
 # 阶段2A: 动态链接运行层 (Runtime Layer - Dynamic)
