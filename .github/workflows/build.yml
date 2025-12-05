@@ -3,7 +3,7 @@ name: Build and Push Wrk Image
 on:
   workflow_dispatch:
   push:
-    branches: [ ssl ]
+    branches: [ master ]
   # schedule:
   #   - cron: '0 3 * * *' # 每天构建一次（可选）
 
@@ -31,8 +31,9 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          # platforms: linux/amd64,linux/arm64
-          platforms: linux/amd64
+          platforms: linux/amd64,linux/arm64
+          # platforms: linux/amd64
           push: true
           tags: |
-            ${{ env.DOCKER_REPO }}:ssl
+            ${{ env.DOCKER_REPO }}:latest
+            ${{ env.DOCKER_REPO }}:alpine
