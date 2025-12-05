@@ -15,11 +15,12 @@ RUN apk add --no-cache \
     libbsd-dev \
     perl
 
-# 2. 静态编译wrk（使用musl-gcc和-static标志）
+# 2. 静态编译wrk
 RUN git clone --depth 1 https://github.com/wg/wrk.git && \
     cd wrk && \
     make clean || true && \
-    make CC="musl-gcc" LDFLAGS="-static" CFLAGS="-O3 -static" && \
+    # 使用标准gcc进行静态编译
+    make LDFLAGS="-static" CFLAGS="-O3 -static" && \
     strip wrk && \
     cp wrk /tmp/wrk-static
 
