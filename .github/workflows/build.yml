@@ -52,5 +52,5 @@ jobs:
           tags: |
             ${{ env.DOCKER_REPO }}:latest
             ${{ env.DOCKER_REPO }}:${{ env.TAG }}
-          build-args: |
-              NGINX_VERSION=${{ env.NGINX_VERSION }}
+          # build-args: |
+          #     NGINX_VERSION=${{ env.NGINX_VERSION }}
