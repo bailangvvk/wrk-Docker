@@ -59,10 +59,6 @@ RUN cd wrk && \
 #          CC="gcc -static" \
 #          LDFLAGS="-static"
 
-# 验证编译结果: 检查是否为静态二进制
-RUN file /wrk/wrk && \
-    (ldd /wrk/wrk 2>/dev/null && echo "动态链接" || echo "静态链接")
-
 # ============================================================================
 # 阶段2A: 动态链接运行层 (Runtime Layer - Dynamic)
 # 目的: 仅包含wrk二进制文件和最小运行时依赖
