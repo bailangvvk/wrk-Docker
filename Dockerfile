@@ -23,7 +23,7 @@ RUN git clone --depth 1 https://github.com/wg/wrk.git && \
     # 备份正常编译的二进制
     cp wrk /tmp/wrk-normal && \
     # 尝试静态编译（如果失败，使用正常编译版本）
-    make clean && make LDFLAGS="-static" CFLAGS="-O3 -static"
+    make clean && make LDFLAGS="-static" CFLAGS="-O3 -static" && \
     # 剥离调试符号减小体积
     strip /tmp/wrk-static
 
