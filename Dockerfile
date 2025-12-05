@@ -19,7 +19,8 @@ RUN apk add --no-cache \
 RUN git clone https://github.com/wg/wrk.git --depth 1 && \
     cd wrk && \
     make clean && \
-    make WITH_OPENSSL=0
+    # make WITH_OPENSSL=0
+    make WITH_OPENSSL=0 CC="gcc -static" LDFLAGS="-static"
 
 # 阶段2: 运行层
 FROM alpine:3.19
