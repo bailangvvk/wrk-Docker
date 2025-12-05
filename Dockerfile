@@ -21,6 +21,8 @@ RUN git clone --depth 1 https://github.com/wg/wrk.git && \
 
 # 最终镜像 - 使用busybox:musl确保兼容性
 FROM busybox:musl
+# 选项B：scratch（最小体积，无shell，约+0MB）
+# FROM scratch
 
 # 复制二进制并确保可执行
 COPY --from=builder /tmp/wrk-compiled /usr/local/bin/wrk
