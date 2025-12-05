@@ -11,7 +11,7 @@
 # ============================================================================
 FROM alpine:3.19 AS build
 
-# 安装构建依赖 (不包含openssl-dev以减小体积)
+# 安装构建依赖 (包含openssl-dev头文件以通过编译，但不会链接到最终二进制)
 # 这些工具仅用于编译，不会出现在最终镜像中
 # git: 克隆源代码
 # make: 构建工具  
@@ -19,6 +19,7 @@ FROM alpine:3.19 AS build
 # musl-dev: musl C库开发文件 (静态编译必需)
 # libbsd-dev: BSD兼容库 (需要静态版本)
 # zlib-dev: 压缩库 (需要静态版本)
+# openssl-dev: OpenSSL开发头文件 (仅用于编译，WITH_OPENSSL=0确保不链接)
 # perl: 部分构建脚本需要
 RUN apk add --no-cache \
     git \
@@ -27,6 +28,7 @@ RUN apk add --no-cache \
     musl-dev \
     libbsd-dev \
     zlib-dev \
+    openssl-dev \
     perl
 
 # 克隆wrk仓库 (--depth 1只获取最新提交，减少下载大小)
