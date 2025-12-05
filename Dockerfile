@@ -19,9 +19,9 @@ RUN apk add --no-cache \
     cd wrk && \
     make clean && \
     make WITH_OPENSSL=0 \
-    && du -sh /wrk \
-    && strip --strip-all /wrk/wrk 2>/dev/null || true \
-    && du -sh /wrk
+    && du -sh / \
+    && strip --strip-all /wrk/* 2>/dev/null || true \
+    && du -sh /
 
 # 阶段2: 运行层
 FROM alpine:3.19
