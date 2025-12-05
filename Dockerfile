@@ -18,7 +18,7 @@ RUN set -eux && apk add --no-cache \
     && git clone https://github.com/wg/wrk.git --depth 1 && \
     cd wrk && \
     make clean && \
-    make WITH_OPENSSL=0 \
+    make WITH_OPENSSL=1 \
     && ls -lh /wrk/wrk \
     && strip -v --strip-all /wrk/wrk \
     && ls -lh /wrk/wrk
